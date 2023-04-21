@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { DeleteOutline, ModeEditOutline } from "@mui/icons-material";
 import {
   Button,
@@ -13,12 +14,18 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { getAllData } from "../Common/getQuery";
 import { deleteTodo, updateTodo } from "../APIs/Todo";
 import TodoModal from "./TodoModal";
+import ContentWrapper from "../Components/ContentWrapper";
+import { AppContext } from "../App";
 
 const Todo = () => {
+  const user_id = localStorage.getItem("user_id");
+
+  const { setLoading } = useContext(AppContext);
+
   const [todoList, setAllTodolist] = useState([]);
 
   const [editData, setEditData] = useState({});
@@ -26,19 +33,19 @@ const Todo = () => {
   const [openTodoModal, setOpenTodoModal] = useState(false);
 
   function getAllTodos() {
-    getAllData("todo").then((data) => {
+    setLoading(true);
+    getAllData("todo", user_id).then((data) => {
       setAllTodolist(data);
+      setLoading(false);
     });
   }
 
   useEffect(() => {
-    if (todoList.length === 0) {
-      getAllTodos();
-    }
-  }, [todoList]);
+    getAllTodos();
+  }, []);
 
   return (
-    <>
+    <ContentWrapper>
       <Grid
         container
         style={{
@@ -48,6 +55,7 @@ const Todo = () => {
           boxShadow: "0 0 20px 1px #00000055",
           borderRadius: "6px",
         }}
+        width={"50%"}
       >
         <Grid
           item
@@ -84,53 +92,58 @@ const Todo = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {todoList.map((item, index) => (
-                <TableRow key={index}>
-                  <TableCell>{index + 1 || "-"}</TableCell>
-                  <TableCell>{item.title || "-"}</TableCell>
-                  <TableCell>{item.description || "-"}</TableCell>
-                  <TableCell align="center">
-                    {
-                      <Checkbox
-                        style={{
-                          padding: 0,
+              {todoList
+                ?.filter((item) => user_id === item?.user_id)
+                .map((item, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{index + 1 || "-"}</TableCell>
+                    <TableCell>{item.title || "-"}</TableCell>
+                    <TableCell>{item.description || "-"}</TableCell>
+                    <TableCell align="center">
+                      {
+                        <Checkbox
+                          style={{
+                            padding: 0,
+                          }}
+                          checked={item.completed}
+                          onChange={() => {
+                            updateTodo({
+                              ...item,
+                              completed: item.completed ? false : true,
+                            }).then(() => {
+                              getAllTodos();
+                            });
+                          }}
+                        />
+                      }
+                    </TableCell>
+                    <TableCell align="right">
+                      <IconButton
+                        onClick={() => {
+                          setEditData(item);
+                          setOpenTodoModal(true);
                         }}
-                        checked={item.completed}
-                        onChange={() => {
-                          updateTodo({
-                            ...item,
-                            completed: item.completed ? false : true,
-                          }).then(() => {
+                      >
+                        <ModeEditOutline
+                          sx={{ fontSize: "16px" }}
+                          color="primary"
+                        />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => {
+                          deleteTodo({ id: item.id }).then(() => {
                             getAllTodos();
                           });
                         }}
-                      />
-                    }
-                  </TableCell>
-                  <TableCell align="right">
-                    <IconButton
-                      onClick={() => {
-                        setEditData(item);
-                        setOpenTodoModal(true);
-                      }}
-                    >
-                      <ModeEditOutline
-                        sx={{ fontSize: "16px" }}
-                        color="primary"
-                      />
-                    </IconButton>
-                    <IconButton
-                      onClick={() => {
-                        deleteTodo({ id: item.id }).then(() => {
-                          getAllTodos();
-                        });
-                      }}
-                    >
-                      <DeleteOutline sx={{ fontSize: "16px" }} color="error" />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
+                      >
+                        <DeleteOutline
+                          sx={{ fontSize: "16px" }}
+                          color="error"
+                        />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </Grid>
@@ -152,7 +165,7 @@ const Todo = () => {
           />
         </Grid>
       </Modal>
-    </>
+    </ContentWrapper>
   );
 };
 

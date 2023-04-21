@@ -1,12 +1,17 @@
 * {
   margin: 0;
-  font-family: "Open Sans";
+  font-family: "Poppins";
 }
 
 #root {
-  font-family: "Open Sans";
+  font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
+    "Lucida Sans", Arial, sans-serif;
+  height: 100vh;
+}
+
+.content-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  height: calc(100vh - 80px);
 }

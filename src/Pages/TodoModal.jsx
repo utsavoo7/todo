@@ -6,8 +6,9 @@ import {
   Typography,
 } from "@mui/material";
 import { useFormik } from "formik";
-import React from "react";
+import React, { useContext } from "react";
 import { addTodo, updateTodo } from "../APIs/Todo";
+import { AppContext } from "../App";
 
 const TodoModal = ({
   setOpenTodoModal,
@@ -15,12 +16,18 @@ const TodoModal = ({
   editData,
   setEditData,
 }) => {
+  const user_id = localStorage.getItem("user_id");
+
+  const { setLoading, setShowAlert } = useContext(AppContext);
+
   const formik = useFormik({
     initialValues: {
       description: editData.id ? editData.description : "",
       title: editData.id ? editData.title : "",
+      user_id: user_id,
     },
     onSubmit: (item) => {
+      setLoading(true);
       if (editData.id) {
         updateTodo({
           completed: editData.completed,
@@ -30,16 +37,37 @@ const TodoModal = ({
         }).then(() => {
           setOpenTodoModal(false);
           getAllTodos();
+          setLoading(false);
+          setShowAlert({
+            show: true,
+            message: "Data successfully updated",
+            type: "info",
+          });
         });
       } else {
         addTodo({
           completed: false,
           description: item.description,
           title: item.title,
-        }).then(() => {
-          setOpenTodoModal(false);
-          getAllTodos();
-        });
+          user_id: user_id,
+        })
+          .then(() => {
+            setOpenTodoModal(false);
+            getAllTodos();
+            setLoading(false);
+            setShowAlert({
+              show: true,
+              message: "Todo Added successfully",
+              type: "success",
+            });
+          })
+          .catch((error) => {
+            setShowAlert({
+              show: true,
+              message: "Add new todo caused some problem please try again.",
+              type: "error",
+            });
+          });
       }
     },
   });
@@ -47,7 +75,7 @@ const TodoModal = ({
     <Grid
       container
       width={"30%"}
-      justifyConten="center"
+      justifyContent="center"
       alignItems={"center"}
       display="flex"
       p={2}

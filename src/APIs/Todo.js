@@ -7,11 +7,12 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 
-const addTodo = ({ completed, title, description }) => {
+const addTodo = ({ completed, title, description, user_id }) => {
   return addDoc(collection(db, "todo"), {
     completed: completed,
     title: title,
     description: description,
+    user_id: user_id,
   });
 };
 
